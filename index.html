@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network Assessment Toolkit</title>
+  <style>
+    :root {
+      --yellow: #f8d350;
+      --charcoal: #221f20;
+      --bg: #1a1819;
+      --surface: #2a2728;
+      --surface2: #333031;
+      --border: #3d3a3b;
+      --text: #e8e4e0;
+      --text-muted: #9a9090;
+      --green: #4caf50;
+      --red: #e05353;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── LOCK SCREEN ── */
+    #lock-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .lock-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .lock-logo {
+      width: 60px;
+      height: 60px;
+      background: var(--yellow);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 1.6rem;
+    }
+
+    .lock-card h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .lock-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .lock-card input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .lock-card input:focus { border-color: var(--yellow); }
+    .lock-card input.error { border-color: var(--red); }
+
+    .lock-card button {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--yellow);
+      color: var(--charcoal);
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .lock-card button:hover { opacity: 0.88; }
+
+    #lock-error {
+      margin-top: 0.75rem;
+      font-size: 0.82rem;
+      color: var(--red);
+      min-height: 1.2em;
+    }
+
+    /* ── MAIN CONTENT ── */
+    #main-content { display: none; }
+
+    header {
+      background: var(--charcoal);
+      border-bottom: 2px solid var(--yellow);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    header .logo { font-size: 1.5rem; }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--yellow);
+    }
+
+    header p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    header .lock-btn {
+      margin-left: auto;
+      padding: 0.4rem 0.9rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    header .lock-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── UPLOAD BANNER ── */
+    .upload-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--yellow);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .upload-banner .icon { font-size: 1.6rem; flex-shrink: 0; }
+
+    .upload-banner .info { flex: 1; min-width: 180px; }
+
+    .upload-banner .info strong { display: block; margin-bottom: 0.2rem; }
+
+    .upload-banner .info span { font-size: 0.82rem; color: var(--text-muted); }
+
+    .upload-btn {
+      padding: 0.6rem 1.4rem;
+      background: var(--yellow);
+      color: var(--charcoal);
+      border: none;
+      border-radius: 7px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    .upload-btn:hover { opacity: 0.85; }
+
+    .upload-btn.secondary {
+      background: transparent;
+      border: 1px solid var(--yellow);
+      color: var(--yellow);
+      margin-left: 0.5rem;
+    }
+
+    /* ── TEXT UPLOAD ── */
+    .text-upload-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .text-upload-section h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .text-upload-section textarea {
+      width: 100%;
+      min-height: 120px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.82rem;
+      padding: 0.75rem;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 0.75rem;
+    }
+
+    .text-upload-section textarea:focus { border-color: var(--yellow); }
+
+    .text-upload-section input[type="text"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.85rem;
+      padding: 0.5rem 0.75rem;
+      outline: none;
+      width: 200px;
+      margin-right: 0.75rem;
+    }
+
+    .text-upload-section input[type="text"]:focus { border-color: var(--yellow); }
+
+    .save-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .save-row label { font-size: 0.82rem; color: var(--text-muted); }
+
+    .save-btn {
+      padding: 0.5rem 1.1rem;
+      background: var(--yellow);
+      color: var(--charcoal);
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    /* ── SCRIPT SECTIONS ── */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--yellow);
+      margin: 2rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .script-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .script-header {
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .script-header:hover { background: var(--surface2); }
+
+    .script-meta { flex: 1; }
+
+    .script-meta strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .script-meta span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .script-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .copy-btn {
+      padding: 0.35rem 0.8rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+    .toggle-icon {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      width: 16px;
+      text-align: center;
+      transition: transform 0.15s;
+    }
+
+    .script-body {
+      display: none;
+      border-top: 1px solid var(--border);
+    }
+
+    .script-body.open { display: block; }
+
+    .toggle-icon.open { transform: rotate(90deg); }
+
+    .script-body pre {
+      padding: 1rem;
+      background: var(--bg);
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      color: #d4d0cc;
+    }
+
+    /* syntax highlight colours (minimal) */
+    .ps-comment { color: #6a9955; }
+    .ps-cmd { color: #9cdcfe; }
+    .ps-param { color: #ce9178; }
+    .ps-var { color: #dcdcaa; }
+    .ps-str { color: #ce9178; }
+    .ps-kw { color: var(--yellow); }
+
+    @media (max-width: 600px) {
+      header { padding: 1rem; }
+      .container { padding: 1rem; }
+      .upload-banner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOCK SCREEN ══════════════════════════════════════ -->
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-logo">🔐</div>
+    <h1>Network Assessment Toolkit</h1>
+    <p>Hogan internal tool · enter the access passphrase to continue</p>
+    <input type="password" id="passphrase-input" placeholder="Access passphrase"
+           autocomplete="off" spellcheck="false" />
+    <button onclick="unlock()">Continue</button>
+    <div id="lock-error"></div>
+  </div>
+</div>
+
+<!-- ══ MAIN CONTENT ══════════════════════════════════════ -->
+<div id="main-content">
+
+  <header>
+    <span class="logo">🛠</span>
+    <div>
+      <h1>Network Assessment Toolkit</h1>
+      <p>Hogan internal · field scripts & secure file upload</p>
+    </div>
+    <button class="lock-btn" onclick="lockScreen()">🔒 Lock</button>
+  </header>
+
+  <div class="container">
+
+    <!-- Upload banner -->
+    <div class="upload-banner">
+      <div class="icon">☁️</div>
+      <div class="info">
+        <strong>Upload Assessment Files</strong>
+        <span>Opens OneDrive secure file request — no login required on this device</span>
+      </div>
+      <a id="onedrive-link" href="PASTE_YOUR_ONEDRIVE_REQUEST_FILES_LINK_HERE"
+         target="_blank" rel="noopener" class="upload-btn">Upload to OneDrive ↗</a>
+    </div>
+
+    <!-- Quick text paste -->
+    <div class="text-upload-section">
+      <h3>📋 Paste Output for Download</h3>
+      <textarea id="text-output" placeholder="Paste script output here to save as a .txt file you can then upload..."></textarea>
+      <div class="save-row">
+        <label>Filename:</label>
+        <input type="text" id="txt-filename" value="assessment-output" placeholder="filename (no extension)" />
+        <button class="save-btn" onclick="saveTextFile()">⬇ Download .txt</button>
+      </div>
+    </div>
+
+    <!-- ── AD USER & GROUP SCRIPTS ── -->
+    <div class="section-title">👤 Active Directory — Users & Groups</div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>Find a user (partial name search)</strong>
+          <span>Searches display name, SAM account, UPN — useful when you know part of the name</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-user-search')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-user-search">
+        <pre><span class="ps-comment"># Replace 'Smith' with any partial name, username, or email prefix</span>
+<span class="ps-var">$search</span> = <span class="ps-str">'Smith'</span>
+
+Get-ADUser -Filter {
+    (DisplayName -like <span class="ps-str">"*$search*"</span>) -or
+    (SamAccountName -like <span class="ps-str">"*$search*"</span>) -or
+    (UserPrincipalName -like <span class="ps-str">"*$search*"</span>)
+} -Properties DisplayName, Title, Department, Mail, Enabled, LockedOut,
+              LastLogonDate, PasswordExpired, PasswordLastSet |
+Select-Object Name, SamAccountName, Mail, Title, Department,
+              Enabled, LockedOut, LastLogonDate, PasswordExpired |
+Format-Table -AutoSize</pre>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>Get user's group memberships</strong>
+          <span>List all groups a specific user belongs to, including nested</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-user-groups')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-user-groups">
+        <pre><span class="ps-comment"># Replace 'jsmith' with the username (SAM account name)</span>
+<span class="ps-var">$user</span> = <span class="ps-str">'jsmith'</span>
+
+<span class="ps-comment"># Direct group memberships</span>
+Get-ADUser -Identity <span class="ps-var">$user</span> -Properties MemberOf |
+    Select-Object -ExpandProperty MemberOf |
+    ForEach-Object { Get-ADGroup <span class="ps-var">$_</span> } |
+    Select-Object Name, GroupScope, GroupCategory |
+    Sort-Object Name |
+    Format-Table -AutoSize
+
+<span class="ps-comment"># All groups including nested (requires AD module)</span>
+<span class="ps-comment"># Get-ADPrincipalGroupMembership -Identity $user -ResourceContextServer (Get-ADDomain).PDCEmulator | Select-Object Name | Sort-Object Name</span></pre>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>List group members</strong>
+          <span>Show all members of a specific group (e.g. Domain Admins, IT Staff)</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-group-members')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-group-members">
+        <pre><span class="ps-comment"># Replace 'Domain Admins' with the group name</span>
+<span class="ps-var">$group</span> = <span class="ps-str">'Domain Admins'</span>
+
+Get-ADGroupMember -Identity <span class="ps-var">$group</span> -Recursive |
+    Where-Object { <span class="ps-var">$_.objectClass</span> -eq <span class="ps-str">'user'</span> } |
+    ForEach-Object {
+        Get-ADUser <span class="ps-var">$_.distinguishedName</span> -Properties DisplayName, Mail, Enabled, LastLogonDate
+    } |
+    Select-Object Name, SamAccountName, DisplayName, Mail, Enabled, LastLogonDate |
+    Sort-Object Name |
+    Format-Table -AutoSize</pre>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>Find privileged / admin accounts</strong>
+          <span>List members of high-privilege built-in groups</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-privs')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-privs">
+        <pre><span class="ps-kw">$privilegedGroups</span> = @(
+    <span class="ps-str">'Domain Admins'</span>,
+    <span class="ps-str">'Enterprise Admins'</span>,
+    <span class="ps-str">'Schema Admins'</span>,
+    <span class="ps-str">'Administrators'</span>,
+    <span class="ps-str">'Account Operators'</span>,
+    <span class="ps-str">'Backup Operators'</span>
+)
+
+<span class="ps-kw">foreach</span> (<span class="ps-var">$group</span> <span class="ps-kw">in</span> <span class="ps-kw">$privilegedGroups</span>) {
+    <span class="ps-kw">try</span> {
+        <span class="ps-var">$members</span> = Get-ADGroupMember -Identity <span class="ps-var">$group</span> -Recursive -ErrorAction Stop |
+            Where-Object { <span class="ps-var">$_.objectClass</span> -eq <span class="ps-str">'user'</span> }
+        Write-Host <span class="ps-str">"`n=== $group ($($members.Count) members) ==="</span> -ForegroundColor Yellow
+        <span class="ps-var">$members</span> | Select-Object Name, SamAccountName | Format-Table -AutoSize
+    } <span class="ps-kw">catch</span> {
+        Write-Host <span class="ps-str">"Group '$group' not found or no access"</span> -ForegroundColor DarkGray
+    }
+}</pre>
+      </div>
+    </div>
+
+    <!-- ── COMPUTER & NETWORK ── -->
+    <div class="section-title">💻 Computers & Network Topology</div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>Find computers (search by name or OS)</strong>
+          <span>Discover machines in AD — filter by name pattern or OS version</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-computers')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-computers">
+        <pre><span class="ps-comment"># All computers — change the filter as needed</span>
+Get-ADComputer -Filter * -Properties Name, OperatingSystem, OperatingSystemVersion,
+    LastLogonDate, IPv4Address, Enabled |
+    Select-Object Name, OperatingSystem, OperatingSystemVersion,
+        LastLogonDate, IPv4Address, Enabled |
+    Sort-Object LastLogonDate -Descending |
+    Format-Table -AutoSize
+
+<span class="ps-comment"># -- Filter: only Windows Server machines --</span>
+<span class="ps-comment"># Get-ADComputer -Filter { OperatingSystem -like "*Server*" } -Properties OperatingSystem, IPv4Address | Select-Object Name, OperatingSystem, IPv4Address | Format-Table -AutoSize</span>
+
+<span class="ps-comment"># -- Filter: stale machines (no logon in 90+ days) --</span>
+<span class="ps-comment"># $cutoff = (Get-Date).AddDays(-90)</span>
+<span class="ps-comment"># Get-ADComputer -Filter { LastLogonDate -lt $cutoff } -Properties LastLogonDate | Select-Object Name, LastLogonDate | Sort-Object LastLogonDate</span></pre>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>Local network info snapshot</strong>
+          <span>IP config, routes, DNS, ARP cache — useful first step on any machine</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-netinfo')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-netinfo">
+        <pre><span class="ps-comment"># ── IP addresses and adapters ──</span>
+Write-Host <span class="ps-str">"=== Network Adapters ==="</span> -ForegroundColor Yellow
+Get-NetIPAddress | Where-Object { <span class="ps-var">$_.AddressFamily</span> -eq <span class="ps-str">'IPv4'</span> -and <span class="ps-var">$_.IPAddress</span> -ne <span class="ps-str">'127.0.0.1'</span> } |
+    Select-Object InterfaceAlias, IPAddress, PrefixLength | Format-Table -AutoSize
+
+<span class="ps-comment"># ── Default gateway ──</span>
+Write-Host <span class="ps-str">"=== Default Gateway ==="</span> -ForegroundColor Yellow
+Get-NetRoute -DestinationPrefix <span class="ps-str">'0.0.0.0/0'</span> | Select-Object InterfaceAlias, NextHop | Format-Table -AutoSize
+
+<span class="ps-comment"># ── DNS servers ──</span>
+Write-Host <span class="ps-str">"=== DNS Servers ==="</span> -ForegroundColor Yellow
+Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object { <span class="ps-var">$_.ServerAddresses</span> } |
+    Select-Object InterfaceAlias, ServerAddresses | Format-Table -AutoSize
+
+<span class="ps-comment"># ── ARP cache (local subnet hosts) ──</span>
+Write-Host <span class="ps-str">"=== ARP Cache ==="</span> -ForegroundColor Yellow
+Get-NetNeighbor -AddressFamily IPv4 | Where-Object { <span class="ps-var">$_.State</span> -ne <span class="ps-str">'Unreachable'</span> } |
+    Select-Object InterfaceAlias, IPAddress, LinkLayerAddress, State | Format-Table -AutoSize
+
+<span class="ps-comment"># ── Current machine's AD domain ──</span>
+Write-Host <span class="ps-str">"=== Domain Info ==="</span> -ForegroundColor Yellow
+[System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain() | Select-Object Name, DomainMode, PdcRoleOwner</pre>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>Test connectivity to a list of hosts</strong>
+          <span>Ping sweep / port check against a range — useful for mapping live hosts</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-ping')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-ping">
+        <pre><span class="ps-comment"># Edit subnet below — scans .1 to .254</span>
+<span class="ps-var">$subnet</span> = <span class="ps-str">'192.168.1'</span>
+<span class="ps-var">$results</span> = @()
+
+1..254 | ForEach-Object -Parallel {
+    <span class="ps-var">$ip</span> = <span class="ps-str">"$using:subnet.$_"</span>
+    <span class="ps-var">$ping</span> = Test-Connection -ComputerName <span class="ps-var">$ip</span> -Count 1 -Quiet -TimeoutSeconds 1
+    <span class="ps-kw">if</span> (<span class="ps-var">$ping</span>) {
+        <span class="ps-var">$dns</span> = <span class="ps-kw">try</span> { [System.Net.Dns]::GetHostEntry(<span class="ps-var">$ip</span>).HostName } <span class="ps-kw">catch</span> { <span class="ps-str">'(no rDNS)'</span> }
+        [PSCustomObject]@{ IP = <span class="ps-var">$ip</span>; Hostname = <span class="ps-var">$dns</span>; Alive = $true }
+    }
+} -ThrottleLimit 50 | Sort-Object { [Version]<span class="ps-var">$_.IP</span> }
+
+<span class="ps-comment"># Output results</span>
+<span class="ps-var">$results</span> | Format-Table -AutoSize
+
+<span class="ps-comment"># -- Check a specific port instead of ping --</span>
+<span class="ps-comment"># Test-NetConnection -ComputerName '192.168.1.10' -Port 445 | Select-Object ComputerName, TcpTestSucceeded</span></pre>
+      </div>
+    </div>
+
+    <!-- ── DOMAIN POLICY & SHARES ── -->
+    <div class="section-title">🗂 Domain Policy & Shares</div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>List domain controllers</strong>
+          <span>Find all DCs in the current domain</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-dcs')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-dcs">
+        <pre>Get-ADDomainController -Filter * |
+    Select-Object Name, IPv4Address, Site, OperatingSystem, IsGlobalCatalog, IsReadOnly |
+    Format-Table -AutoSize</pre>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>List network shares on a machine</strong>
+          <span>Show shared folders on the local or a remote machine</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-shares')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-shares">
+        <pre><span class="ps-comment"># Local shares</span>
+Get-SmbShare | Select-Object Name, Path, Description, CurrentUsers | Format-Table -AutoSize
+
+<span class="ps-comment"># Remote machine shares — replace SERVER with the target hostname or IP</span>
+<span class="ps-comment"># Get-SmbShare -CimSession 'SERVER' | Select-Object Name, Path, Description | Format-Table -AutoSize</span>
+
+<span class="ps-comment"># Enum via net command (works without PS remoting)</span>
+<span class="ps-comment"># net view \\SERVER /all</span></pre>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-header" onclick="toggleScript(this)">
+        <span class="toggle-icon">▶</span>
+        <div class="script-meta">
+          <strong>Export full AD user list to CSV</strong>
+          <span>Dump all users with key fields — save the file then upload via OneDrive above</span>
+        </div>
+        <div class="script-actions">
+          <button class="copy-btn" onclick="copyScript(event, 'script-export')">Copy</button>
+        </div>
+      </div>
+      <div class="script-body" id="script-export">
+        <pre><span class="ps-var">$outPath</span> = <span class="ps-str">"$env:USERPROFILE\Desktop\ad-users-$(Get-Date -Format 'yyyyMMdd-HHmm').csv"</span>
+
+Get-ADUser -Filter * -Properties DisplayName, Title, Department, Mail,
+    Enabled, LockedOut, LastLogonDate, PasswordExpired, PasswordNeverExpires,
+    PasswordLastSet, Created, DistinguishedName |
+    Select-Object SamAccountName, DisplayName, Title, Department, Mail,
+        Enabled, LockedOut, LastLogonDate, PasswordExpired, PasswordNeverExpires,
+        PasswordLastSet, Created |
+    Export-Csv -Path <span class="ps-var">$outPath</span> -NoTypeInformation -Encoding UTF8
+
+Write-Host <span class="ps-str">"Saved to $outPath"</span> -ForegroundColor Green</pre>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+</div><!-- /main-content -->
+
+<script>
+  // ── PASSPHRASE CONFIG ──────────────────────────────────────────
+  // To change the passphrase:
+  //   1. Run in browser console: crypto.subtle.digest('SHA-256', new TextEncoder().encode('YourNewPassphrase')).then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+  //   2. Replace PASSPHRASE_HASH below with the output
+  const PASSPHRASE_HASH = '185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969';
+  const SESSION_KEY = 'nat_auth';
+
+  async function sha256hex(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function unlock() {
+    const input = document.getElementById('passphrase-input');
+    const err = document.getElementById('lock-error');
+    const hash = await sha256hex(input.value.trim());
+    if (hash === PASSPHRASE_HASH) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      showMain();
+    } else {
+      input.classList.add('error');
+      err.textContent = 'Incorrect passphrase.';
+      input.value = '';
+      setTimeout(() => { input.classList.remove('error'); err.textContent = ''; }, 2500);
+    }
+  }
+
+  function showMain() {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+  }
+
+  function lockScreen() {
+    sessionStorage.removeItem(SESSION_KEY);
+    document.getElementById('lock-screen').style.display = 'flex';
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('passphrase-input').value = '';
+  }
+
+  // Auto-unlock if session is still active (survives page refresh within tab)
+  if (sessionStorage.getItem(SESSION_KEY) === '1') showMain();
+
+  // Enter key on passphrase field
+  document.getElementById('passphrase-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') unlock();
+  });
+
+  // ── SCRIPT TOGGLE ─────────────────────────────────────────────
+  function toggleScript(header) {
+    const body = header.nextElementSibling;
+    const icon = header.querySelector('.toggle-icon');
+    body.classList.toggle('open');
+    icon.classList.toggle('open');
+  }
+
+  // ── COPY SCRIPT ───────────────────────────────────────────────
+  function copyScript(event, id) {
+    event.stopPropagation();
+    const pre = document.getElementById(id).querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.currentTarget;
+      const original = btn.textContent;
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // ── SAVE TEXT FILE ─────────────────────────────────────────────
+  function saveTextFile() {
+    const text = document.getElementById('text-output').value;
+    if (!text.trim()) { alert('Nothing to save — paste some output first.'); return; }
+    const name = (document.getElementById('txt-filename').value.trim() || 'assessment-output') + '.txt';
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+</script>
+</body>
+</html>
