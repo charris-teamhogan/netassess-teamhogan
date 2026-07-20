@@ -725,7 +725,7 @@ Write-Host <span class="ps-str">"Saved to $outPath"</span> -ForegroundColor Gree
   // To change the passphrase:
   //   1. Run in browser console: crypto.subtle.digest('SHA-256', new TextEncoder().encode('YourNewPassphrase')).then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
   //   2. Replace PASSPHRASE_HASH below with the output
-  const PASSPHRASE_HASH = '185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969';
+  const PASSPHRASE_HASH = 'd5e0174a607f04c1bb1cee1adb526955414443ebe42dc329eb92e5e6b694aa98';
   const SESSION_KEY = 'nat_auth';
 
   async function sha256hex(str) {
